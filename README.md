@@ -2,6 +2,8 @@
 
 Calendar occurrences anchored to an original date and strict elapsed-hour change cutoffs. Month ends, leap years and local wall time remain deliberate; skips, capacity, billing and job creation stay in the host.
 
+**[Interactive workshop](https://matthewnewport.com/packages/laravel-cadence/lab)** — Try guided examples in your browser.
+
 ```sh
 composer require mrnewport/laravel-cadence:^1.0
 ```
