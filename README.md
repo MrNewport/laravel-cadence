@@ -1,48 +1,20 @@
 # Laravel Cadence
 
-Anchored calendar recurrence and delivery change cutoffs. Built for subscription deliveries and recurring property maintenance where skipping a date must not move every later occurrence.
-
-Supports Laravel 12 on PHP 8.2+ and Laravel 13 on PHP 8.3+. Uses Carbon 3 for date calculations. No tables, scheduled jobs, network requests, or paid services.
+Calendar occurrences anchored to an original date and strict elapsed-hour change cutoffs. Month ends, leap years and local wall time remain deliberate; skips, capacity, billing and job creation stay in the host.
 
 ```sh
 composer require mrnewport/laravel-cadence:^1.0
-php artisan cadence:preview 2026-01-31 --unit=month --count=4 --timezone=America/Phoenix
 ```
 
-Until Packagist indexes the package, add the GitHub repository as a Composer VCS source:
+If your Composer registry has not indexed the GitHub tag, add its VCS source and repeat the requirement:
 
 ```sh
-composer config repositories.cadence vcs https://github.com/MrNewport/laravel-cadence
+composer config repositories.laravel-cadence vcs https://github.com/MrNewport/laravel-cadence
+composer require mrnewport/laravel-cadence:^1.0
 ```
 
-## Calendar rules
+No tables or scheduled jobs are created. Try `php artisan cadence:preview 2026-01-31 --unit=month --count=4 --timezone=America/Phoenix`.
 
-```php
-use Carbon\CarbonImmutable;
-use MrNewport\LaravelCadence\{Schedule, Unit, Cutoff};
+Start with the [handbook](docs/HANDBOOK.md) for fresh Laravel 12/13 installation and the complete feature/operational guide. The [feature index](docs/FEATURES.md) links every public API, return contract, failure mode and executable reference. The [recipes](docs/RECIPES.md) show serious standalone and optional cross-package application use.
 
-$schedule = new Schedule(
-    CarbonImmutable::parse('2026-09-14 00:00', 'America/Phoenix'),
-    Unit::Week,
-    interval: 2,
-);
-
-$dates = $schedule->between(
-    CarbonImmutable::parse('2026-10-01', 'America/Phoenix'),
-    CarbonImmutable::parse('2026-11-01', 'America/Phoenix'),
-);
-// October 12 and 26: the September anchor remains unchanged.
-
-$next = $schedule->nextOnOrAfter(CarbonImmutable::now());
-$editable = Cutoff::isOpen($next, hoursBefore: 48);
-```
-
-Units are day, week, month, and year. Every occurrence is calculated from the original anchor. January 31 produces February 28/29 and then March 31. A February 29 yearly anchor returns to February 29 in the next leap year. Calendar time retains the anchor's timezone and wall-clock time across DST. A nonexistent local time uses Carbon/PHP's forward normalization; ambiguous local times follow Carbon/PHP's timezone rules. For fixed elapsed intervals, use an elapsed-time scheduler instead.
-
-Windows include both endpoints. `nextOnOrAfter` is inclusive. Occurrences before the anchor are never returned. `between` defaults to a 10,000-result limit and throws if exceeded; it never silently truncates. A cutoff is an elapsed number of hours before the occurrence, computed in UTC and returned in its timezone. Changes are closed exactly at the cutoff.
-
-Persist the anchor, unit, interval, and timezone in your application's existing subscription or maintenance records. Apply skips, pauses, capacity limits, holidays, billing, and authorization in your own domain service. Do not replace the anchor with the last delivered date.
-
-## Tests
-
-`composer test` covers month ends, leap years, original cadence after resume, spring/fall DST, exact cutoff boundaries, inclusive windows, resource bounds, and Artisan discovery. CI tests Laravel 12/13 and a fresh Laravel 13 installation without development dependencies.
+Laravel's own PHP runtime requirements apply. Package dependency constraints and current test coverage are described in the handbook. Run `composer test` in a development checkout; optional browser/renderer checks are documented with their requirements. Installing this package does not automatically integrate another package or authorize application records.
